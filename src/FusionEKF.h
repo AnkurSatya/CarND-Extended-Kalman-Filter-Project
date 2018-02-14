@@ -34,9 +34,12 @@ public:
 private:
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
+  bool state_velocity_init;
 
   // previous timestamp
   long long previous_timestamp_;
+
+  long long deltaT;
 
   // tool object used to compute Jacobian and RMSE
   Tools tools;

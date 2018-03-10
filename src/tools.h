@@ -30,6 +30,9 @@ public:
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
 
+  // A helper function to constraint the value of the angle from - pi to pi.
+  void pi_range(VectorXd &value);
+
 };
 
 #endif /* TOOLS_H_ */

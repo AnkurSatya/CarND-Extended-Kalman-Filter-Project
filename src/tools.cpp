@@ -1,5 +1,6 @@
 #include <iostream>
 #include "tools.h"
+#include <cmath>
 
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
@@ -16,15 +17,19 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
     * Calculate the RMSE here.
   */
 	VectorXd error(4);
-	MatrixXd for_square(4,4);
+	VectorXd rmse(4);
+	rmse<<0,0,0,0;
 
-	error = ground_truth - estimations;
-	for_square << error[0], 0, 0, 0,
-				  0, error[1], 0, 0,
-				  0, 0, error[2], 0,
-				  0, 0, 0, error[3];
-	error = sqrt(for_square * error);
-	return error;
+	for(int i=0; i<estimations.size(); i++)
+	{
+		error = ground_truth[i] - estimations[i];
+		error = error.array() * error.array(); // Array conversion allows element-wise multiplication.
+		rmse+= error;
+	}
+	rmse = rmse/estimations.size();
+	rmse = rmse.array().sqrt();
+	
+	return rmse;
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
@@ -38,6 +43,15 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
 	Jacobian << x_state[0]/pow(p1, 1/2), x_state[1]/pow(p1, 1/2), 0, 0,
 				-x_state[1]/p1, x_state[0]/p1, 0, 0,
-				x_state[1]*p2/pow(p1, 3/2), x_state[0]*(-p2)/pow(p1, 3/2), x_state[0]/pow(p1, 1/2), x_state[1]/pow(p1, 1/2)	 
+				x_state[1]*p2/pow(p1, 3/2), x_state[0]*(-p2)/pow(p1, 3/2), x_state[0]/pow(p1, 1/2), x_state[1]/pow(p1, 1/2);	 
 	return Jacobian;
+}
+
+void Tools::pi_range(VectorXd &value)
+{
+	int sign = value[1]/abs(value[1]);
+	while(value[1] > M_PI || value[1] < -M_PI)
+	{
+		value[1]+= -sign*2*M_PI;
+	}
 }

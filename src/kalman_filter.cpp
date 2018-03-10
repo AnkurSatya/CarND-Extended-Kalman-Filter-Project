@@ -9,7 +9,8 @@ using Eigen::VectorXd;
 KalmanFilter::KalmanFilter() 
 {
   //Taking noise_ax=9 and noise_ay=9;
-  VectorXd u(2) << 9, 9;
+  u = VectorXd(2); 
+  u << 9, 9;
 }
 
 KalmanFilter::~KalmanFilter() {}
@@ -29,7 +30,7 @@ void KalmanFilter::Predict() {
   TODO:
     * predict the state
   */
-  x_ = F_ * x_ + DT * u;
+  x_ = F_ * x_;//Removed (DT * u)
   P_ = F_ * P_ * (F_.transpose()) + Q_;
 }
 
@@ -41,14 +42,14 @@ void KalmanFilter::Update(const VectorXd &z) {
   VectorXd y(2);// Error vector
   MatrixXd S(2,2);//Helper Matrix - error in prediction + error in signal measurement
   MatrixXd K(4,2);//Kalman Gain Matrix
-  MatrixXd I(4,4);//Identity Matrix
+  MatrixXd I = MatrixXd::Identity(4,4);//Identity Matrix
 
   // Update Equations
   y = z - H_ * x_;
   S = H_ * P_ * (H_.transpose()) + R_;
   K = P_ * (H_.transpose()) * (S.inverse());
   x_ = x_ + (K * y);
-  P_ = (I - (K * H)) * P_;
+  P_ = (I - (K * H_)) * P_;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) 
@@ -69,11 +70,11 @@ void KalmanFilter::UpdateEKF(const VectorXd &z)
     VectorXd y(3);
     MatrixXd S(3,3);
     MatrixXd K(4,3);
-    MatrixXd I(4,4);
-    Tools tools;
+    MatrixXd I = MatrixXd::Identity(4,4);
 
     //Update Equations
     y = z - H_trans;
+    tools.pi_range(y);
     S = H_ * P_ * (H_. transpose()) + R_;
     K = P_ * (H_.transpose()) * (S.inverse());
     x_ = x_ + (K * y);

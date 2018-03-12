@@ -103,7 +103,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     previous_timestamp_= measurement_pack.timestamp_;
     ekf_.F_ = MatrixXd(4,4);
     ekf_.DT = MatrixXd(4,2);
-    ekf_.Q_ = MatrixXd(4,4);
     // ekf_.DT = MatrixXd(4,2);
     return;
   }
@@ -129,21 +128,30 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
              0, 0, 0, 1;
 
   
-  ekf_.DT << 0.5 * (deltaT*deltaT), 0,
-             0, 0.5 * (deltaT*deltaT),
-             deltaT, 0,
-             0, deltaT;
+  // ekf_.DT << 0.5 * (deltaT*deltaT), 0,
+  //            0, 0.5 * (deltaT*deltaT),
+  //            deltaT, 0,
+  //            0, deltaT;
 
-  // float t_=deltaT*deltaT;
-  // float t_cube=t_*deltaT;
-  // float t_quad=t_*t_;
+  float noise_ax = 9;
+  float noise_ay = 9;
+
+  float dt_2=deltaT * deltaT;
+  float dt_3=dt_2 * deltaT;
+  float dt_4=dt_3 * deltaT;
 
   // ekf_.Q_ <<  t_quad*ekf_.u[0]/4, 0, t_cube*ekf_.u[0]/2,0,
   //             0,t_quad*ekf_.u[1]/4,0,t_cube*ekf_.u[1]/2,
   //             t_cube*ekf_.u[0]/2,0,t_*ekf_.u[0],0,
   //             0,t_cube*ekf_.u[1]/2,0,t_*ekf_.u[1];
 
-  ekf_.Q_ << (ekf_.DT * ekf_.u) * ((ekf_.DT * ekf_.u).transpose());
+  // ekf_.Q_ << (ekf_.DT * ekf_.u) * ((ekf_.DT * ekf_.u).transpose());
+  ekf_.Q_ = MatrixXd(4,4);
+  ekf_.Q_<<dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
+           0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay,
+           dt_3/2*noise_ax, 0, dt_2*noise_ax, 0,
+           0, dt_3/2*noise_ay, 0, dt_2*noise_ay;
+
   ekf_.Predict();
 
   /*****************************************************************************

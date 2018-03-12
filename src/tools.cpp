@@ -16,13 +16,12 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   TODO:
     * Calculate the RMSE here.
   */
-	VectorXd error(4);
 	VectorXd rmse(4);
 	rmse<<0,0,0,0;
 
-	for(int i=0; i<estimations.size(); i++)
+	for(unsigned int i=0; i<estimations.size(); ++i)
 	{
-		error = ground_truth[i] - estimations[i];
+		VectorXd error = ground_truth[i] - estimations[i];
 		error = error.array() * error.array(); // Array conversion allows element-wise multiplication.
 		rmse+= error;
 	}
@@ -37,13 +36,27 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   TODO:
     * Calculate a Jacobian here.
   */
-	float p1 = pow(x_state[0], 2) + pow(x_state[1], 2);
-	float p2 = x_state[2]*x_state[1] - x_state[0]*x_state[3];
 	MatrixXd Jacobian(3,4);
 
-	Jacobian << x_state[0]/pow(p1, 1/2), x_state[1]/pow(p1, 1/2), 0, 0,
-				-x_state[1]/p1, x_state[0]/p1, 0, 0,
-				x_state[1]*p2/pow(p1, 3/2), x_state[0]*(-p2)/pow(p1, 3/2), x_state[0]/pow(p1, 1/2), x_state[1]/pow(p1, 1/2);	 
+	float px = x_state[0];
+	float py = x_state[1];
+	float vx = x_state[2];
+	float vy = x_state[3];
+
+	float c1 = px*px + py*py;
+	float c2 = sqrt(c1);
+	float c3 = (c1*c2);
+	
+
+	if(fabs(c1)<0.0001)
+	{
+		cout<<"CalculateJacobian() - Error - Division By zero"<<endl;
+		return Jacobian;
+	}
+
+	Jacobian <<(px/c2), (py/c2), 0, 0,
+			   -(py/c1), (px/c1), 0, 0,
+			   py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
 	return Jacobian;
 }
 
